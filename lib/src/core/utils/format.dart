@@ -25,9 +25,9 @@ String formatDuration(int seconds) {
 /// Pace from average speed (m/s) -> "5:30 /km". Returns "--:--" when stopped.
 String formatPace(double speedMps) {
   if (speedMps <= 0) return "--:-- /km";
-  final secPerKm = 1000 / speedMps;
-  final m = secPerKm ~/ 60;
-  final s = (secPerKm % 60).round();
+  final total = (1000 / speedMps).round(); // seconds per km, rounded first
+  final m = total ~/ 60;
+  final s = total % 60;
   return '$m:${s.toString().padLeft(2, '0')} /km';
 }
 

@@ -96,8 +96,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
             }
             context.pop();
           }),
-          const Spacer(),
-          if (state.status == RecordStatus.idle) _typeChips(state),
+          const SizedBox(width: 8),
+          if (state.status == RecordStatus.idle) Expanded(child: _typeChips(state)),
         ],
       ),
     );
@@ -105,16 +105,22 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   Widget _typeChips(RecordState state) {
     const types = ['run', 'ride', 'walk', 'hike'];
-    return Wrap(
-      spacing: 6,
-      children: [
-        for (final t in types)
-          ChoiceChip(
-            label: Text(activityTypeLabel(t)),
-            selected: state.type == t,
-            onSelected: (_) => ref.read(recordControllerProvider.notifier).setType(t),
-          ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      reverse: true,
+      child: Row(
+        children: [
+          for (final t in types)
+            Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: ChoiceChip(
+                label: Text(activityTypeLabel(t)),
+                selected: state.type == t,
+                onSelected: (_) => ref.read(recordControllerProvider.notifier).setType(t),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
