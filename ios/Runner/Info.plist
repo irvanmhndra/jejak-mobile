@@ -53,6 +53,10 @@
 	<string>Jejak menggunakan lokasi untuk merekam rute dan statistik aktivitasmu.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Jejak merekam rute aktivitasmu, termasuk saat aplikasi di latar belakang.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

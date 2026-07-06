@@ -119,6 +119,14 @@ class StatsScreen extends ConsumerWidget {
         return ('Elevasi terbanyak', formatElevation(r.value));
       case 'fastest_speed':
         return ('Tercepat', formatPaceOrSpeed(r.activityType, r.value));
+      case 'fastest_5k':
+        return ('5K tercepat', formatDuration(r.value.round()));
+      case 'fastest_10k':
+        return ('10K tercepat', formatDuration(r.value.round()));
+      case 'fastest_half':
+        return ('Half tercepat', formatDuration(r.value.round()));
+      case 'fastest_full':
+        return ('Full tercepat', formatDuration(r.value.round()));
       default:
         return (r.recordType, r.value.toStringAsFixed(0));
     }

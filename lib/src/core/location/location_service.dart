@@ -1,8 +1,10 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
-/// Thin wrapper around geolocator: permission handling + a position stream
-/// tuned for activity tracking.
+/// Thin wrapper around geolocator: permission handling + a background-capable
+/// position stream tuned for activity tracking.
 class LocationService {
   const LocationService();
 
@@ -25,12 +27,35 @@ class LocationService {
     return null;
   }
 
-  Stream<Position> positionStream() => Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.best,
-          distanceFilter: 4, // meters
+  Stream<Position> positionStream() {
+    const accuracy = LocationAccuracy.best;
+    const distanceFilter = 4; // meters
+    LocationSettings settings;
+    if (Platform.isIOS) {
+      settings = AppleSettings(
+        accuracy: accuracy,
+        distanceFilter: distanceFilter,
+        activityType: ActivityType.fitness,
+        pauseLocationUpdatesAutomatically: false,
+        // Keep recording with the screen off / app backgrounded.
+        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: true,
+      );
+    } else if (Platform.isAndroid) {
+      settings = AndroidSettings(
+        accuracy: accuracy,
+        distanceFilter: distanceFilter,
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationTitle: 'Jejak sedang merekam',
+          notificationText: 'Melacak rute aktivitasmu',
+          enableWakeLock: true,
         ),
       );
+    } else {
+      settings = const LocationSettings(accuracy: accuracy, distanceFilter: distanceFilter);
+    }
+    return Geolocator.getPositionStream(locationSettings: settings);
+  }
 
   Future<Position> current() => Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),

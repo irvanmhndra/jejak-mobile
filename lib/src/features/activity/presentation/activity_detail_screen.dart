@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,7 @@ import '../../../core/utils/format.dart';
 import '../data/activity_providers.dart';
 import '../data/activity_service.dart';
 import '../domain/activity.dart';
+import '../domain/track_analysis.dart';
 import 'home_screen.dart' show activityIcon;
 
 class ActivityDetailScreen extends ConsumerWidget {
@@ -93,6 +95,8 @@ class ActivityDetailScreen extends ConsumerWidget {
                   _stat('Kecepatan Maks', formatSpeed(a.maxSpeedMps)),
                 ],
               ),
+              _ElevationChart(points: d.points),
+              _Splits(points: d.points),
               if (a.notes != null && a.notes!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(a.notes!, style: const TextStyle(color: AppColors.textSub)),
@@ -194,5 +198,131 @@ class ActivityDetailScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(f.message)));
       }
     }
+  }
+}
+
+class _ElevationChart extends StatelessWidget {
+  const _ElevationChart({required this.points});
+  final List<TrackPoint> points;
+
+  @override
+  Widget build(BuildContext context) {
+    final series = elevationSeries(points);
+    if (series.length < 2) return const SizedBox.shrink();
+    final spots = [for (final e in series) FlSpot(e.km, e.ele)];
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 16, 16, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Profil Elevasi',
+                  style: TextStyle(color: AppColors.textSub, fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 130,
+                child: LineChart(
+                  LineChartData(
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 34,
+                          getTitlesWidget: (v, meta) => Text(
+                            '${v.round()}',
+                            style: const TextStyle(fontSize: 10, color: AppColors.textSub),
+                          ),
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        color: AppColors.primary,
+                        barWidth: 2,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(show: true, color: AppColors.primary.withValues(alpha: 0.15)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Splits extends StatelessWidget {
+  const _Splits({required this.points});
+  final List<TrackPoint> points;
+
+  @override
+  Widget build(BuildContext context) {
+    final splits = computeSplits(points);
+    if (splits.isEmpty) return const SizedBox.shrink();
+    final slowest = splits.map((s) => s.seconds).reduce((a, b) => a > b ? a : b);
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Splits per km',
+                  style: TextStyle(color: AppColors.textSub, fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 12),
+              for (final s in splits)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 22,
+                        child: Text('${s.km}',
+                            style: const TextStyle(color: AppColors.textSub, fontWeight: FontWeight.w600)),
+                      ),
+                      Expanded(
+                        child: Container(
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: (s.seconds / slowest).clamp(0.2, 1.0),
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(s.pace,
+                                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
