@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/error/failure.dart';
 import '../../../core/theme/app_theme.dart';
@@ -24,10 +28,20 @@ class ActivityDetailScreen extends ConsumerWidget {
         title: const Text('Detail'),
         actions: [
           detail.maybeWhen(
-            data: (d) => IconButton(
-              tooltip: 'Hapus',
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmDelete(context, ref, d.activity.id),
+            data: (d) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Ekspor GPX',
+                  icon: const Icon(Icons.ios_share),
+                  onPressed: () => _exportGpx(context, ref, d.activity),
+                ),
+                IconButton(
+                  tooltip: 'Hapus',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _confirmDelete(context, ref, d.activity.id),
+                ),
+              ],
             ),
             orElse: () => const SizedBox.shrink(),
           ),
@@ -136,6 +150,20 @@ class ActivityDetailScreen extends ConsumerWidget {
         Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
       ],
     );
+  }
+
+  Future<void> _exportGpx(BuildContext context, WidgetRef ref, Activity a) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final bytes = await ref.read(activityServiceProvider).exportGpx(a.id);
+      final dir = await getTemporaryDirectory();
+      final safe = a.title.replaceAll(RegExp('[^a-zA-Z0-9-_ ]'), '').trim();
+      final file = File('${dir.path}/${safe.isEmpty ? 'activity' : safe}.gpx');
+      await file.writeAsBytes(bytes);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], subject: a.title));
+    } on Failure catch (f) {
+      messenger.showSnackBar(SnackBar(content: Text(f.message)));
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String activityId) async {

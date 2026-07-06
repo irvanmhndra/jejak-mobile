@@ -110,6 +110,32 @@ class ActivityService {
     }
   }
 
+  /// Fetches the activity's GPX as raw bytes.
+  Future<List<int>> exportGpx(String id) async {
+    try {
+      final res = await _dio.get<List<int>>(
+        '/activities/$id/gpx',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return res.data ?? const [];
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
+
+  /// Uploads a GPX file (multipart) and returns the created activity.
+  Future<Activity> importGpx(List<int> bytes, {String filename = 'import.gpx'}) async {
+    try {
+      final form = FormData.fromMap({
+        'file': MultipartFile.fromBytes(bytes, filename: filename),
+      });
+      final res = await _dio.post<Map<String, dynamic>>('/activities/import', data: form);
+      return Activity.fromJson(res.data!['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw mapDioError(e);
+    }
+  }
+
   Future<List<PersonalRecord>> records() async {
     try {
       final res = await _dio.get<Map<String, dynamic>>('/records');

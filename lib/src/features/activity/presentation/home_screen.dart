@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import '../../../core/utils/format.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/activity_providers.dart';
+import '../data/activity_service.dart';
 import '../domain/activity.dart';
 import '../domain/stats.dart';
 
@@ -40,6 +42,11 @@ class HomeScreen extends ConsumerWidget {
             tooltip: 'Input manual',
             icon: const Icon(Icons.edit_note),
             onPressed: () => context.push('/manual'),
+          ),
+          IconButton(
+            tooltip: 'Impor GPX',
+            icon: const Icon(Icons.file_upload_outlined),
+            onPressed: () => _importGpx(context, ref),
           ),
           IconButton(
             tooltip: 'Keluar',
@@ -92,6 +99,32 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _importGpx(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['gpx'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final picked = result.files.first;
+    final bytes = picked.bytes;
+    if (bytes == null) return;
+    try {
+      final activity = await ref
+          .read(activityServiceProvider)
+          .importGpx(bytes, filename: picked.name);
+      ref.invalidate(activitiesProvider);
+      ref.invalidate(statsSummaryProvider);
+      ref.invalidate(recordsProvider);
+      if (context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text('Diimpor: ${activity.title}')));
+      }
+    } on Failure catch (f) {
+      messenger.showSnackBar(SnackBar(content: Text(f.message)));
+    }
   }
 }
 
