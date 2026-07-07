@@ -39,24 +39,31 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () => context.push('/heatmap'),
           ),
           IconButton(
+            tooltip: 'Target',
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: () => context.push('/goals'),
+          ),
+          IconButton(
             tooltip: 'Statistik',
             icon: const Icon(Icons.bar_chart),
             onPressed: () => context.push('/stats'),
           ),
-          IconButton(
-            tooltip: 'Input manual',
-            icon: const Icon(Icons.edit_note),
-            onPressed: () => context.push('/manual'),
-          ),
-          IconButton(
-            tooltip: 'Impor GPX',
-            icon: const Icon(Icons.file_upload_outlined),
-            onPressed: () => _importGpx(context, ref),
-          ),
-          IconButton(
-            tooltip: 'Keluar',
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'manual':
+                  context.push('/manual');
+                case 'import':
+                  _importGpx(context, ref);
+                case 'logout':
+                  ref.read(authControllerProvider.notifier).logout();
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'manual', child: Text('Input manual')),
+              PopupMenuItem(value: 'import', child: Text('Impor GPX')),
+              PopupMenuItem(value: 'logout', child: Text('Keluar')),
+            ],
           ),
         ],
       ),
