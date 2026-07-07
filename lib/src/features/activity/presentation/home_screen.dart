@@ -34,6 +34,11 @@ class HomeScreen extends ConsumerWidget {
         title: const Text('Jejak'),
         actions: [
           IconButton(
+            tooltip: 'Heatmap',
+            icon: const Icon(Icons.map_outlined),
+            onPressed: () => context.push('/heatmap'),
+          ),
+          IconButton(
             tooltip: 'Statistik',
             icon: const Icon(Icons.bar_chart),
             onPressed: () => context.push('/stats'),

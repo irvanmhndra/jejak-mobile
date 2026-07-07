@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/activity/presentation/activity_detail_screen.dart';
+import '../../features/activity/presentation/heatmap_screen.dart';
 import '../../features/activity/presentation/home_screen.dart';
 import '../../features/activity/presentation/manual_screen.dart';
 import '../../features/activity/presentation/record_screen.dart';
@@ -40,6 +41,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/record', builder: (context, state) => const RecordScreen()),
       GoRoute(path: '/stats', builder: (context, state) => const StatsScreen()),
+      GoRoute(path: '/heatmap', builder: (context, state) => const HeatmapScreen()),
       GoRoute(path: '/manual', builder: (context, state) => const ManualScreen()),
       GoRoute(
         path: '/activities/:id',
