@@ -17,6 +17,7 @@ import '../data/activity_service.dart';
 import '../domain/activity.dart';
 import '../domain/track_analysis.dart';
 import 'home_screen.dart' show activityIcon;
+import 'share_screen.dart';
 
 class ActivityDetailScreen extends ConsumerWidget {
   const ActivityDetailScreen({super.key, required this.id});
@@ -34,8 +35,15 @@ class ActivityDetailScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  tooltip: 'Ekspor GPX',
+                  tooltip: 'Bagikan gambar',
                   icon: const Icon(Icons.ios_share),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => ShareScreen(detail: d)),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Ekspor GPX',
+                  icon: const Icon(Icons.file_download_outlined),
                   onPressed: () => _exportGpx(context, ref, d.activity),
                 ),
                 IconButton(
